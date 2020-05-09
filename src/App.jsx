@@ -5,31 +5,59 @@ class App extends React.Component{
             gameArray: ['-','-','-',
                         '-','-','-',
                         '-','-','-'],
-            playerTurn: 'X',
-            computerTurn: false
+            playerTurn: '',
+            computerTurn: false,
+            winner: ''
             
         }
         
         this.markPosition = this.markPosition.bind(this);
         this.getMove = this.getMove.bind(this);
+        this.checkWinCondition = this.checkWinCondition.bind(this);
+        this.handleCharacter = this.handleCharacter.bind(this);
     }
-    
-    markPosition(posNumber){ // changing to X O in state
+    //-------------CHARACTER CHOOSE---------------//
+    //                                            //
+    //--------------------------------------------//
+    handleCharacter(playerChoice){
+        let gameState = this.state.gameArray.join('');
+        document.getElementById("main-menu").classList.toggle('fadeOut');
+        if (playerChoice == 'O'){
+            this.setState({computerTurn: true,
+                          playerTurn: 'X'}, this.getMove(gameState, 'X'))
+            
+        } else {
+            this.setState({playerTurn: "X"})
+        }
+        
+    }
+
+    //-------------MARK PLAYER TURN---------------//
+    //                                            //
+    //--------------------------------------------//
+    markPosition(posNumber){ // mark the Move of the player
         let array = [...this.state.gameArray]; // clone the previous state
         if (array[posNumber] == '-'){ // if the position in the array is not filled with X or O then:
             array[posNumber] = this.state.playerTurn; //change that position into whose turn it is
-            this.setState({gameArray: array}) 
+            this.setState({gameArray: array}, () => this.checkWinCondition());
+            
+            
             if (this.state.playerTurn == 'X'){ //change player's turn
-                this.setState({playerTurn: 'O'})
+                this.setState({playerTurn: 'O', computerTurn: true})
+                
                 this.getMove(array.join(''),'O')//get next move 
+                
             } else {
-                this.setState({playerTurn: 'X'})
+                this.setState({playerTurn: 'X', computerTurn: true})
                 this.getMove(array.join(''),'X')//get next move 
             };
             
         }
     }
     
+    //-------------GET SUGGESTED MOVE-------------//
+    //                                            //
+    //--------------------------------------------//
     getMove(gameState, playerTurn){ //get moves from the API
         var req = new XMLHttpRequest();
         req.open("GET", "https://stujo-tic-tac-toe-stujo-v1.p.rapidapi.com/" + gameState +"/" + playerTurn);
@@ -41,32 +69,78 @@ class App extends React.Component{
             document.getElementById('test').innerHTML = req.responseText;
             var json = JSON.parse(req.responseText);
             let array = json.game.split(''); 
-            array[json.recommendation] = playerTurn; //change the recommendation move into an array
-            this.setState({gameArray: array})   //and setState to the array
+            array[json.recommendation] = playerTurn; //change the recommendation move into an array           
+            this.setState({gameArray: array}, () => this.checkWinCondition())   //and setState to the array
             if (this.state.playerTurn == 'X'){ //change player's turn
-                this.setState({playerTurn: 'O'})
+                this.setState({playerTurn: 'O', computerTurn: false})
             } else {
-                this.setState({playerTurn: 'X'})
+                this.setState({playerTurn: 'X', computerTurn: false})
             };
             
     }.bind(this)
 }
-
+    //-------------CHECK WIN CONDITION---------------//
+    //                                            //
+    //--------------------------------------------//
+    checkWinCondition(){
+        
+        let winConfig = 
+            [
+                [0,1,2],
+                [3,4,5],
+                [6,7,8],
+                [0,3,6],
+                [1,4,7],
+                [2,5,8],
+                [0,4,8],
+                [6,4,2]
+            ];
+        let playerList = ['X','O'];
+        for (let i = 0; i < playerList.length; i++){
+            let gameState = this.state.gameArray;
+            
+            if (this.state.winner != '') break;
+            
+            for (let j = 0; j < winConfig.length; j++){
+                
+                
+                
+                if (gameState[winConfig[j][0]] == playerList[i] // check if the player have won
+                && gameState[winConfig[j][1]] == playerList[i]  
+                && gameState[winConfig[j][2]] == playerList[i]){
+                    
+                    this.setState({winner: playerList[i]})
+                    break;
+                }  
+            }
+        }
+    }
     
+    
+
+    //---------------RENDERING APP---------------------//
     render(){
-        let square = this.state.gameArray.map((a,i) => (<Square content = {a} number = {i} markPosition = {this.markPosition}/>))
+        let square = this.state.gameArray.map((a,i) => (<Square content = {a} 
+                                                            number = {i} 
+                                                            markPosition = {this.markPosition} 
+                                                            winner = {this.state.winner}
+                                                            computerTurn = {this.state.computerTurn}/>))
         return(
-        <div>
-            <div id = 'square-container'>
-                {square}
+        <div id='container'>
+            <div id = 'main-menu'>
+                <p> Choose your character: </p>
+                <div onClick = {() => this.handleCharacter('X')}>X</div>
+                <div onClick = {() => this.handleCharacter('O')}>O</div>
             </div>
+            <div id = 'winner'>{this.state.winner}</div>
+            <div id = 'square-container'>{square}</div>
         </div>
             
         )
     }
 }
 
-
+    //---------------RENDERING SQUARES---------------------//
 
 class Square extends React.Component{
     constructor(props){
@@ -75,7 +149,11 @@ class Square extends React.Component{
     }
     
     handleClick(){
-        this.props.markPosition(this.props.number);    //send the position clicked to the main App
+        if (this.props.winner == ''){
+            if (this.props.computerTurn == false){
+                this.props.markPosition(this.props.number);    //send the position clicked to the main App
+            }
+        }
     }
     
     render(){

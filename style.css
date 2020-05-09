@@ -1,11 +1,16 @@
+*{
+    margin: 0px;
+    padding: 0px;
+}
+
 #square-container{
     display: grid;
     width: 600px;
     height: 600px;
-    display: grid;
-    grid-template-columns: auto auto auto;
+    grid-template-columns: 200px 200px 200px;
     background-color: #2196F3;
     border: 1px solid black;
+    margin: 0px;
 }
 
 .squares{
@@ -14,4 +19,47 @@
     height: 100%;
     align-items: center;
     justify-content: center;
+    border: 1px solid black;
+}
+
+#container{
+    width: 600px;
+    height: auto;
+    border: 1px solid blue;
+}
+
+#main-menu{
+    width: 600px;
+    height: 600px;
+    border: 1px solid pink;
+    position: absolute;
+    background-color: aliceblue;
+    z-index: 9999;
+    opacity: 0.9;
+}
+
+
+
+@keyframes fadeOut{
+    0%{
+        opacity: 1
+    }
+    
+    99%{
+        opacity: 0;
+    }
+    100%{
+        width: 0px;
+        height: 0px;
+        overflow: hidden;
+        
+    }
+}
+
+.fadeOut{
+    animation: fadeOut;
+    animation-duration: 2s;
+    animation-fill-mode: forwards;
+    
+    
 }

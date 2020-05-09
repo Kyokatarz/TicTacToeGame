@@ -18,35 +18,70 @@ var App = function (_React$Component) {
 
         _this.state = {
             gameArray: ['-', '-', '-', '-', '-', '-', '-', '-', '-'],
-            playerTurn: 'X',
-            computerTurn: false
+            playerTurn: '',
+            computerTurn: false,
+            winner: ''
 
         };
 
         _this.markPosition = _this.markPosition.bind(_this);
         _this.getMove = _this.getMove.bind(_this);
+        _this.checkWinCondition = _this.checkWinCondition.bind(_this);
+        _this.handleCharacter = _this.handleCharacter.bind(_this);
         return _this;
     }
+    //-------------CHARACTER CHOOSE---------------//
+    //                                            //
+    //--------------------------------------------//
+
 
     _createClass(App, [{
+        key: 'handleCharacter',
+        value: function handleCharacter(playerChoice) {
+            var gameState = this.state.gameArray.join('');
+            document.getElementById("main-menu").classList.toggle('fadeOut');
+            if (playerChoice == 'O') {
+                this.setState({ computerTurn: true,
+                    playerTurn: 'X' }, this.getMove(gameState, 'X'));
+            } else {
+                this.setState({ playerTurn: "X" });
+            }
+        }
+
+        //-------------MARK PLAYER TURN---------------//
+        //                                            //
+        //--------------------------------------------//
+
+    }, {
         key: 'markPosition',
         value: function markPosition(posNumber) {
-            // changing to X O in state
+            var _this2 = this;
+
+            // mark the Move of the player
             var array = [].concat(_toConsumableArray(this.state.gameArray)); // clone the previous state
             if (array[posNumber] == '-') {
                 // if the position in the array is not filled with X or O then:
                 array[posNumber] = this.state.playerTurn; //change that position into whose turn it is
-                this.setState({ gameArray: array });
+                this.setState({ gameArray: array }, function () {
+                    return _this2.checkWinCondition();
+                });
+
                 if (this.state.playerTurn == 'X') {
                     //change player's turn
-                    this.setState({ playerTurn: 'O' });
+                    this.setState({ playerTurn: 'O', computerTurn: true });
+
                     this.getMove(array.join(''), 'O'); //get next move 
                 } else {
-                    this.setState({ playerTurn: 'X' });
+                    this.setState({ playerTurn: 'X', computerTurn: true });
                     this.getMove(array.join(''), 'X'); //get next move 
                 };
             }
         }
+
+        //-------------GET SUGGESTED MOVE-------------//
+        //                                            //
+        //--------------------------------------------//
+
     }, {
         key: 'getMove',
         value: function getMove(gameState, playerTurn) {
@@ -58,30 +93,95 @@ var App = function (_React$Component) {
 
             req.send();
             req.onload = function () {
+                var _this3 = this;
+
                 document.getElementById('test').innerHTML = req.responseText;
                 var json = JSON.parse(req.responseText);
                 var array = json.game.split('');
-                array[json.recommendation] = playerTurn; //change the recommendation move into an array
-                this.setState({ gameArray: array }); //and setState to the array
+                array[json.recommendation] = playerTurn; //change the recommendation move into an array           
+                this.setState({ gameArray: array }, function () {
+                    return _this3.checkWinCondition();
+                }); //and setState to the array
                 if (this.state.playerTurn == 'X') {
                     //change player's turn
-                    this.setState({ playerTurn: 'O' });
+                    this.setState({ playerTurn: 'O', computerTurn: false });
                 } else {
-                    this.setState({ playerTurn: 'X' });
+                    this.setState({ playerTurn: 'X', computerTurn: false });
                 };
             }.bind(this);
         }
+        //-------------CHECK WIN CONDITION---------------//
+        //                                            //
+        //--------------------------------------------//
+
+    }, {
+        key: 'checkWinCondition',
+        value: function checkWinCondition() {
+
+            var winConfig = [[0, 1, 2], [3, 4, 5], [6, 7, 8], [0, 3, 6], [1, 4, 7], [2, 5, 8], [0, 4, 8], [6, 4, 2]];
+            var playerList = ['X', 'O'];
+            for (var i = 0; i < playerList.length; i++) {
+                var gameState = this.state.gameArray;
+
+                if (this.state.winner != '') break;
+
+                for (var j = 0; j < winConfig.length; j++) {
+
+                    if (gameState[winConfig[j][0]] == playerList[i] // check if the player have won
+                    && gameState[winConfig[j][1]] == playerList[i] && gameState[winConfig[j][2]] == playerList[i]) {
+
+                        this.setState({ winner: playerList[i] });
+                        break;
+                    }
+                }
+            }
+        }
+
+        //---------------RENDERING APP---------------------//
+
     }, {
         key: 'render',
         value: function render() {
-            var _this2 = this;
+            var _this4 = this;
 
             var square = this.state.gameArray.map(function (a, i) {
-                return React.createElement(Square, { content: a, number: i, markPosition: _this2.markPosition });
+                return React.createElement(Square, { content: a,
+                    number: i,
+                    markPosition: _this4.markPosition,
+                    winner: _this4.state.winner,
+                    computerTurn: _this4.state.computerTurn });
             });
             return React.createElement(
                 'div',
-                null,
+                { id: 'container' },
+                React.createElement(
+                    'div',
+                    { id: 'main-menu' },
+                    React.createElement(
+                        'p',
+                        null,
+                        ' Choose your character: '
+                    ),
+                    React.createElement(
+                        'div',
+                        { onClick: function onClick() {
+                                return _this4.handleCharacter('X');
+                            } },
+                        'X'
+                    ),
+                    React.createElement(
+                        'div',
+                        { onClick: function onClick() {
+                                return _this4.handleCharacter('O');
+                            } },
+                        'O'
+                    )
+                ),
+                React.createElement(
+                    'div',
+                    { id: 'winner' },
+                    this.state.winner
+                ),
                 React.createElement(
                     'div',
                     { id: 'square-container' },
@@ -93,6 +193,8 @@ var App = function (_React$Component) {
 
     return App;
 }(React.Component);
+
+//---------------RENDERING SQUARES---------------------//
 
 var Square = function (_React$Component2) {
     _inherits(Square, _React$Component2);
@@ -106,7 +208,11 @@ var Square = function (_React$Component2) {
     _createClass(Square, [{
         key: 'handleClick',
         value: function handleClick() {
-            this.props.markPosition(this.props.number); //send the position clicked to the main App
+            if (this.props.winner == '') {
+                if (this.props.computerTurn == false) {
+                    this.props.markPosition(this.props.number); //send the position clicked to the main App
+                }
+            }
         }
     }, {
         key: 'render',
