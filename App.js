@@ -27,19 +27,20 @@ var App = function (_React$Component) {
         _this.markPosition = _this.markPosition.bind(_this);
         _this.getMove = _this.getMove.bind(_this);
         _this.checkWinCondition = _this.checkWinCondition.bind(_this);
-        _this.handleCharacter = _this.handleCharacter.bind(_this);
+        _this.handleCharacter = _this.handleCharacterChoice.bind(_this);
+        _this.resetHandler = _this.resetHandler.bind(_this);
         return _this;
     }
-    //-------------CHARACTER CHOOSE---------------//
+    //-------------CHARACTER CHOICE---------------//
     //                                            //
     //--------------------------------------------//
 
 
     _createClass(App, [{
-        key: 'handleCharacter',
-        value: function handleCharacter(playerChoice) {
+        key: 'handleCharacterChoice',
+        value: function handleCharacterChoice(playerChoice) {
             var gameState = this.state.gameArray.join('');
-            document.getElementById("main-menu").classList.toggle('fadeOut');
+            this.animation('main-menu', 'fadeOut');
             if (playerChoice == 'O') {
                 this.setState({ computerTurn: true,
                     playerTurn: 'X' }, this.getMove(gameState, 'X'));
@@ -57,7 +58,7 @@ var App = function (_React$Component) {
         value: function markPosition(posNumber) {
             var _this2 = this;
 
-            // mark the Move of the player
+            // mark the move of the active player
             var array = [].concat(_toConsumableArray(this.state.gameArray)); // clone the previous state
             if (array[posNumber] == '-') {
                 // if the position in the array is not filled with X or O then:
@@ -95,7 +96,6 @@ var App = function (_React$Component) {
             req.onload = function () {
                 var _this3 = this;
 
-                document.getElementById('test').innerHTML = req.responseText;
                 var json = JSON.parse(req.responseText);
                 var array = json.game.split('');
                 array[json.recommendation] = playerTurn; //change the recommendation move into an array           
@@ -126,15 +126,42 @@ var App = function (_React$Component) {
                 if (this.state.winner != '') break;
 
                 for (var j = 0; j < winConfig.length; j++) {
-
                     if (gameState[winConfig[j][0]] == playerList[i] // check if the player have won
                     && gameState[winConfig[j][1]] == playerList[i] && gameState[winConfig[j][2]] == playerList[i]) {
 
-                        this.setState({ winner: playerList[i] });
+                        this.setState({ winner: playerList[i] + ' WON!' });
+                        this.animation('winner-announcer', 'fadeIn');
                         break;
                     }
                 }
             }
+        }
+    }, {
+        key: 'animation',
+        value: function animation(elemById, type) {
+            switch (type) {
+                case 'fadeIn':
+                    document.getElementById(elemById).classList.add('fadeIn');
+                    break;
+
+                case 'fadeOut':
+                    document.getElementById(elemById).classList.add('fadeOut');
+
+                default:
+                    break;
+            }
+        }
+    }, {
+        key: 'resetHandler',
+        value: function resetHandler() {
+            console.log('Click!');
+            this.setState({ gameArray: ['-', '-', '-', '-', '-', '-', '-', '-', '-'],
+                playerTurn: '',
+                computerTurn: false,
+                winner: ''
+            });
+            document.getElementById('main-menu').classList.remove('fadeOut');
+            document.getElementById('winner-announcer').classList.remove('fadeIn');
         }
 
         //---------------RENDERING APP---------------------//
@@ -156,30 +183,36 @@ var App = function (_React$Component) {
                 { id: 'container' },
                 React.createElement(
                     'div',
+                    { id: 'reset-button', onClick: this.resetHandler },
+                    'RESET'
+                ),
+                React.createElement(
+                    'div',
                     { id: 'main-menu' },
                     React.createElement(
                         'p',
                         null,
-                        ' Choose your character: '
-                    ),
-                    React.createElement(
-                        'div',
-                        { onClick: function onClick() {
-                                return _this4.handleCharacter('X');
-                            } },
-                        'X'
-                    ),
-                    React.createElement(
-                        'div',
-                        { onClick: function onClick() {
-                                return _this4.handleCharacter('O');
-                            } },
-                        'O'
+                        ' Choose your character: ',
+                        React.createElement('br', null),
+                        React.createElement(
+                            'span',
+                            { onClick: function onClick() {
+                                    return _this4.handleCharacterChoice('X');
+                                } },
+                            'X'
+                        ),
+                        React.createElement(
+                            'span',
+                            { onClick: function onClick() {
+                                    return _this4.handleCharacterChoice('O');
+                                } },
+                            'O'
+                        )
                     )
                 ),
                 React.createElement(
                     'div',
-                    { id: 'winner' },
+                    { id: 'winner-announcer' },
                     this.state.winner
                 ),
                 React.createElement(

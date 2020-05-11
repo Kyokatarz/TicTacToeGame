@@ -14,14 +14,15 @@ class App extends React.Component{
         this.markPosition = this.markPosition.bind(this);
         this.getMove = this.getMove.bind(this);
         this.checkWinCondition = this.checkWinCondition.bind(this);
-        this.handleCharacter = this.handleCharacter.bind(this);
+        this.handleCharacter = this.handleCharacterChoice.bind(this);
+        this.resetHandler = this.resetHandler.bind(this);
     }
-    //-------------CHARACTER CHOOSE---------------//
+    //-------------CHARACTER CHOICE---------------//
     //                                            //
     //--------------------------------------------//
-    handleCharacter(playerChoice){
+    handleCharacterChoice(playerChoice){
         let gameState = this.state.gameArray.join('');
-        document.getElementById("main-menu").classList.toggle('fadeOut');
+        this.animation('main-menu', 'fadeOut')
         if (playerChoice == 'O'){
             this.setState({computerTurn: true,
                           playerTurn: 'X'}, this.getMove(gameState, 'X'))
@@ -35,7 +36,7 @@ class App extends React.Component{
     //-------------MARK PLAYER TURN---------------//
     //                                            //
     //--------------------------------------------//
-    markPosition(posNumber){ // mark the Move of the player
+    markPosition(posNumber){ // mark the move of the active player
         let array = [...this.state.gameArray]; // clone the previous state
         if (array[posNumber] == '-'){ // if the position in the array is not filled with X or O then:
             array[posNumber] = this.state.playerTurn; //change that position into whose turn it is
@@ -66,7 +67,7 @@ class App extends React.Component{
 
         req.send();
         req.onload = function(){
-            document.getElementById('test').innerHTML = req.responseText;
+            
             var json = JSON.parse(req.responseText);
             let array = json.game.split(''); 
             array[json.recommendation] = playerTurn; //change the recommendation move into an array           
@@ -102,21 +103,45 @@ class App extends React.Component{
             if (this.state.winner != '') break;
             
             for (let j = 0; j < winConfig.length; j++){
-                
-                
-                
                 if (gameState[winConfig[j][0]] == playerList[i] // check if the player have won
                 && gameState[winConfig[j][1]] == playerList[i]  
                 && gameState[winConfig[j][2]] == playerList[i]){
                     
-                    this.setState({winner: playerList[i]})
+                    this.setState({winner: playerList[i] + ' WON!'});
+                    this.animation('winner-announcer','fadeIn')
                     break;
                 }  
             }
         }
     }
     
-    
+    animation(elemById, type){
+        switch (type) {
+            case 'fadeIn':
+                document.getElementById(elemById).classList.add('fadeIn');
+                break;
+
+            case 'fadeOut':
+                document.getElementById(elemById).classList.add('fadeOut');
+                
+            default:
+                break;
+        }
+    }
+
+    resetHandler(){
+        console.log('Click!')
+        this.setState({gameArray: ['-','-','-','-','-','-','-','-','-'],
+                    playerTurn: '',
+                    computerTurn: false,
+                    winner: '',
+            }
+        )
+        document.getElementById('main-menu').classList.remove('fadeOut');
+        document.getElementById('winner-announcer').classList.remove('fadeIn');
+        
+    }
+
 
     //---------------RENDERING APP---------------------//
     render(){
@@ -127,12 +152,14 @@ class App extends React.Component{
                                                             computerTurn = {this.state.computerTurn}/>))
         return(
         <div id='container'>
+            <div id='reset-button' onClick = {this.resetHandler}>RESET</div>
             <div id = 'main-menu'>
-                <p> Choose your character: </p>
-                <div onClick = {() => this.handleCharacter('X')}>X</div>
-                <div onClick = {() => this.handleCharacter('O')}>O</div>
-            </div>
-            <div id = 'winner'>{this.state.winner}</div>
+                <p> Choose your character: <br/>
+                <span onClick = {() => this.handleCharacterChoice('X')}>X</span>
+                <span onClick = {() => this.handleCharacterChoice('O')}>O</span>
+                </p>
+            </div>    
+            <div id = 'winner-announcer'>{this.state.winner}</div>
             <div id = 'square-container'>{square}</div>
         </div>
             
