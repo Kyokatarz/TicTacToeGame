@@ -20,8 +20,9 @@ var App = function (_React$Component) {
             gameArray: ['-', '-', '-', '-', '-', '-', '-', '-', '-'],
             playerTurn: '',
             computerTurn: false,
-            winner: ''
-
+            winner: '',
+            humanScore: 0,
+            compScore: 0
         };
 
         _this.markPosition = _this.markPosition.bind(_this);
@@ -40,7 +41,7 @@ var App = function (_React$Component) {
         key: 'handleCharacterChoice',
         value: function handleCharacterChoice(playerChoice) {
             var gameState = this.state.gameArray.join('');
-            this.animation('main-menu', 'fadeOut');
+            this.animation('overlay', 'fadeOut');
             if (playerChoice == 'O') {
                 this.setState({ computerTurn: true,
                     playerTurn: 'X' }, this.getMove(gameState, 'X'));
@@ -70,7 +71,6 @@ var App = function (_React$Component) {
                 if (this.state.playerTurn == 'X') {
                     //change player's turn
                     this.setState({ playerTurn: 'O', computerTurn: true });
-
                     this.getMove(array.join(''), 'O'); //get next move 
                 } else {
                     this.setState({ playerTurn: 'X', computerTurn: true });
@@ -87,6 +87,7 @@ var App = function (_React$Component) {
         key: 'getMove',
         value: function getMove(gameState, playerTurn) {
             //get moves from the API
+            console.log('API was called!');
             var req = new XMLHttpRequest();
             req.open("GET", "https://stujo-tic-tac-toe-stujo-v1.p.rapidapi.com/" + gameState + "/" + playerTurn);
             req.setRequestHeader("x-rapidapi-host", "stujo-tic-tac-toe-stujo-v1.p.rapidapi.com");
@@ -117,21 +118,34 @@ var App = function (_React$Component) {
     }, {
         key: 'checkWinCondition',
         value: function checkWinCondition() {
+            var _this4 = this;
 
             var winConfig = [[0, 1, 2], [3, 4, 5], [6, 7, 8], [0, 3, 6], [1, 4, 7], [2, 5, 8], [0, 4, 8], [6, 4, 2]];
             var playerList = ['X', 'O'];
             for (var i = 0; i < playerList.length; i++) {
                 var gameState = this.state.gameArray;
-
                 if (this.state.winner != '') break;
+                if (!gameState.includes('-') && this.state.winner == '') {
+                    //the game board is completely filled up and no winner (basically a draw)
+                    console.log(gameState);
+                    this.setState({ winner: 'It\'s a draw!' });
+                    setTimeout(function () {
+                        return _this4.animation('overlay', 'fadeIn');
+                    }, 700);
+                } else {
+                    for (var j = 0; j < winConfig.length; j++) {
+                        if (gameState[winConfig[j][0]] == playerList[i] // check if one of the the players have won
+                        && gameState[winConfig[j][1]] == playerList[i] && gameState[winConfig[j][1]] == playerList[i] && gameState[winConfig[j][1]] == playerList[i] && gameState[winConfig[j][2]] == playerList[i]) {
 
-                for (var j = 0; j < winConfig.length; j++) {
-                    if (gameState[winConfig[j][0]] == playerList[i] // check if the player have won
-                    && gameState[winConfig[j][1]] == playerList[i] && gameState[winConfig[j][2]] == playerList[i]) {
-
-                        this.setState({ winner: playerList[i] + ' WON!' });
-                        this.animation('winner-announcer', 'fadeIn');
-                        break;
+                            this.setState({ winner: playerList[i] + ' WON!' });
+                            setTimeout(function () {
+                                return _this4.animation('overlay', 'fadeIn');
+                            }, 700);
+                            winConfig[j].forEach(function (number) {
+                                return document.getElementsByClassName('squares')[number].classList.add('darker-squares');
+                            }); // make squares look darker for the winning config
+                            break;
+                        }
                     }
                 }
             }
@@ -154,14 +168,15 @@ var App = function (_React$Component) {
     }, {
         key: 'resetHandler',
         value: function resetHandler() {
-            console.log('Click!');
             this.setState({ gameArray: ['-', '-', '-', '-', '-', '-', '-', '-', '-'],
                 playerTurn: '',
                 computerTurn: false,
                 winner: ''
             });
-            document.getElementById('main-menu').classList.remove('fadeOut');
-            document.getElementById('winner-announcer').classList.remove('fadeIn');
+            document.getElementById('overlay').classList = '';
+            [].concat(_toConsumableArray(document.getElementsByClassName('squares'))).forEach(function (elem) {
+                return elem.classList.remove('darker-squares');
+            });
         }
 
         //---------------RENDERING APP---------------------//
@@ -169,14 +184,14 @@ var App = function (_React$Component) {
     }, {
         key: 'render',
         value: function render() {
-            var _this4 = this;
+            var _this5 = this;
 
             var square = this.state.gameArray.map(function (a, i) {
                 return React.createElement(Square, { content: a,
                     number: i,
-                    markPosition: _this4.markPosition,
-                    winner: _this4.state.winner,
-                    computerTurn: _this4.state.computerTurn });
+                    markPosition: _this5.markPosition,
+                    winner: _this5.state.winner,
+                    computerTurn: _this5.state.computerTurn });
             });
             return React.createElement(
                 'div',
@@ -188,32 +203,39 @@ var App = function (_React$Component) {
                 ),
                 React.createElement(
                     'div',
-                    { id: 'main-menu' },
-                    React.createElement(
-                        'p',
-                        null,
-                        ' Choose your character: ',
-                        React.createElement('br', null),
+                    { id: 'overlay' },
+                    this.state.winner == '' ? React.createElement(
+                        'div',
+                        { id: 'main-menu' },
                         React.createElement(
-                            'span',
-                            { onClick: function onClick() {
-                                    return _this4.handleCharacterChoice('X');
-                                } },
-                            'X'
+                            'p',
+                            null,
+                            ' Choose your character: ',
+                            React.createElement('br', null)
                         ),
                         React.createElement(
-                            'span',
-                            { onClick: function onClick() {
-                                    return _this4.handleCharacterChoice('O');
-                                } },
-                            'O'
+                            'div',
+                            { id: 'characters' },
+                            React.createElement(
+                                'span',
+                                { onClick: function onClick() {
+                                        return _this5.handleCharacterChoice('X');
+                                    } },
+                                'X'
+                            ),
+                            React.createElement(
+                                'span',
+                                { onClick: function onClick() {
+                                        return _this5.handleCharacterChoice('O');
+                                    } },
+                                'O'
+                            )
                         )
+                    ) : React.createElement(
+                        'div',
+                        { id: 'winner-announcer' },
+                        this.state.winner
                     )
-                ),
-                React.createElement(
-                    'div',
-                    { id: 'winner-announcer' },
-                    this.state.winner
                 ),
                 React.createElement(
                     'div',
@@ -253,7 +275,7 @@ var Square = function (_React$Component2) {
             return React.createElement(
                 'div',
                 { className: 'squares', onClick: this.handleClick.bind(this) },
-                React.createElement(
+                this.props.content == '-' ? React.createElement('p', null) : React.createElement(
                     'p',
                     null,
                     this.props.content

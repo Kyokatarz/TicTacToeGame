@@ -7,8 +7,9 @@ class App extends React.Component{
                         '-','-','-'],
             playerTurn: '',
             computerTurn: false,
-            winner: ''
-            
+            winner: '',
+            humanScore: 0,
+            compScore: 0
         }
         
         this.markPosition = this.markPosition.bind(this);
@@ -22,7 +23,7 @@ class App extends React.Component{
     //--------------------------------------------//
     handleCharacterChoice(playerChoice){
         let gameState = this.state.gameArray.join('');
-        this.animation('main-menu', 'fadeOut')
+        this.animation('overlay', 'fadeOut')
         if (playerChoice == 'O'){
             this.setState({computerTurn: true,
                           playerTurn: 'X'}, this.getMove(gameState, 'X'))
@@ -45,7 +46,6 @@ class App extends React.Component{
             
             if (this.state.playerTurn == 'X'){ //change player's turn
                 this.setState({playerTurn: 'O', computerTurn: true})
-                
                 this.getMove(array.join(''),'O')//get next move 
                 
             } else {
@@ -60,6 +60,7 @@ class App extends React.Component{
     //                                            //
     //--------------------------------------------//
     getMove(gameState, playerTurn){ //get moves from the API
+        console.log('API was called!')
         var req = new XMLHttpRequest();
         req.open("GET", "https://stujo-tic-tac-toe-stujo-v1.p.rapidapi.com/" + gameState +"/" + playerTurn);
         req.setRequestHeader("x-rapidapi-host", "stujo-tic-tac-toe-stujo-v1.p.rapidapi.com");
@@ -99,21 +100,30 @@ class App extends React.Component{
         let playerList = ['X','O'];
         for (let i = 0; i < playerList.length; i++){
             let gameState = this.state.gameArray;
-            
             if (this.state.winner != '') break;
-            
-            for (let j = 0; j < winConfig.length; j++){
-                if (gameState[winConfig[j][0]] == playerList[i] // check if the player have won
+            if (!gameState.includes('-') && this.state.winner == ''){ //the game board is completely filled up and no winner (basically a draw)
+                    console.log(gameState);
+                    this.setState({winner: 'It\'s a draw!'});
+                    setTimeout(()=>this.animation('overlay','fadeIn') ,700);
+            } else {
+                for (let j = 0; j < winConfig.length; j++){
+                    if (gameState[winConfig[j][0]] == playerList[i] // check if one of the the players have won
+                    && gameState[winConfig[j][1]] == playerList[i]  
                 && gameState[winConfig[j][1]] == playerList[i]  
-                && gameState[winConfig[j][2]] == playerList[i]){
-                    
-                    this.setState({winner: playerList[i] + ' WON!'});
-                    this.animation('winner-announcer','fadeIn')
-                    break;
+                    && gameState[winConfig[j][1]] == playerList[i]  
+                    && gameState[winConfig[j][2]] == playerList[i]){
+                        
+                        this.setState({winner: playerList[i] + ' WON!'});
+                        setTimeout(()=>this.animation('overlay','fadeIn') ,700)
+                        winConfig[j].forEach(number => document.getElementsByClassName('squares')[number].classList.add('darker-squares')) // make squares look darker for the winning config
+                        break;
+                    }  
                 }  
-            }
+            }  
         }
     }
+    
+    
     
     animation(elemById, type){
         switch (type) {
@@ -130,16 +140,14 @@ class App extends React.Component{
     }
 
     resetHandler(){
-        console.log('Click!')
         this.setState({gameArray: ['-','-','-','-','-','-','-','-','-'],
                     playerTurn: '',
                     computerTurn: false,
                     winner: '',
             }
         )
-        document.getElementById('main-menu').classList.remove('fadeOut');
-        document.getElementById('winner-announcer').classList.remove('fadeIn');
-        
+        document.getElementById('overlay').classList = '';
+        [...document.getElementsByClassName('squares')].forEach(elem => elem.classList.remove('darker-squares'))
     }
 
 
@@ -153,13 +161,27 @@ class App extends React.Component{
         return(
         <div id='container'>
             <div id='reset-button' onClick = {this.resetHandler}>RESET</div>
-            <div id = 'main-menu'>
-                <p> Choose your character: <br/>
-                <span onClick = {() => this.handleCharacterChoice('X')}>X</span>
-                <span onClick = {() => this.handleCharacterChoice('O')}>O</span>
-                </p>
+            
+            <div id = 'overlay'>
+                { this.state.winner == '' ? (
+                    <div id = 'main-menu'>
+                        <p> Choose your character: <br/></p>
+                        <div id = 'characters'>
+                            <span onClick = {() => this.handleCharacterChoice('X')}>X</span>
+                            <span onClick = {() => this.handleCharacterChoice('O')}>O</span>
+                        </div>
+                    </div>
+            
+                ) : 
+
+                (
+                    <div id = 'winner-announcer'>
+                        {this.state.winner}
+                    </div>
+                )
+                
+                }
             </div>    
-            <div id = 'winner-announcer'>{this.state.winner}</div>
             <div id = 'square-container'>{square}</div>
         </div>
             
@@ -186,7 +208,7 @@ class Square extends React.Component{
     render(){
         return(
             <div className = 'squares' onClick = {this.handleClick.bind(this)}>
-                <p>{this.props.content}</p>
+                {this.props.content == '-' ? <p></p> : <p>{this.props.content}</p>}
             </div>
         )
         

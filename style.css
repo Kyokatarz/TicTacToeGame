@@ -11,62 +11,84 @@ html,body{
     justify-content: center;
 }
 
+
+#reset-button{
+    font-family: 'Balsamiq Sans', cursive;
+    cursor: pointer;
+}
+
 #square-container{
     display: grid;
     width: 600px;
-    height: 600px;
+    height: auto;
     grid-template-columns: 200px 200px 200px;
-    background-color: #2196F3;
-    border: 1px solid black;
     margin: 0px;
 }
 
 .squares{
     display: flex;
-    width: 100%;
-    height: 100%;
+    width: 198px;
+    height: 198px;
     align-items: center;
     justify-content: center;
+    background-color: #2196F3;
+    font-size: 100px;
+    font-family: 'Permanent Marker', cursive;
+    cursor: pointer;
     border: 1px solid black;
+}
+
+.darker-squares{
+    background-color: #062c4a;
 }
 
 #container{
     width: 600px;
     height: auto;
-    border: 1px solid blue;
     position: relative;
 }
 
 
-#main-menu{
+#overlay{
     width: 600px;
     height: 600px;
-    border: 1px solid pink;
     background-color: white;
     z-index: 9999;
     opacity: 0.9;
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: space-around;
     position: absolute;
+    bottom: 0px;
+    font-family: 'Balsamiq Sans', cursive;
+}
+#main-menu p{
+    position: relative;
+    margin: 50px;
+    font-size: 35px;
 }
 
-#main-menu p span{
-    margin: 40px;
+#characters{
+    height: auto;
+    width: auto;
+    margin: 10px;
+    padding: 5px;
+    display: flex;
+    justify-content: space-around;
+    font-size: 50px;
+    
+}
+#characters span{
+    cursor: pointer;
+}
+
+#characters span:hover{
+    font-size: 70px;
 }
 
 #winner-announcer{
-    width: 0px;
-    height: 0px;
-    border: 1px solid pink;
-    background-color: green;
-    z-index: 1;
-    opacity: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: absolute;
-    overflow: hidden;
+    color: black;
+    font-size: 70px;
 }
 
 
@@ -92,7 +114,7 @@ html,body{
 
 .fadeOut{
     animation: fadeOut;
-    animation-duration: 1s;
+    animation-duration: 2s;
     animation-fill-mode: forwards;
 }
 
@@ -111,7 +133,7 @@ html,body{
     100%{
         width: 600px;
         height: 600px;
-        opacity: 0.7;
+        opacity: 0.9;
     }
 }
 
